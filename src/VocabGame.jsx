@@ -1,0 +1,423 @@
+import React, { useState, useEffect, useMemo } from 'react';
+import { Sparkles, Star, Award, Upload, Play, RotateCcw } from 'lucide-react';
+
+const VocabGame = () => {
+  const [words, setWords] = useState([]);
+  const [rounds, setRounds] = useState([]);
+  const [roundIndex, setRoundIndex] = useState(0);
+  const [userAnswer, setUserAnswer] = useState('');
+  const [score, setScore] = useState(0);
+  const [totalAnswered, setTotalAnswered] = useState(0);
+  const [feedback, setFeedback] = useState('');
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [gameStarted, setGameStarted] = useState(false);
+  const [celebrating, setCelebrating] = useState(false);
+  const [gameComplete, setGameComplete] = useState(false);
+  const [leaderboard, setLeaderboard] = useState([]);
+
+  const sampleWords = [
+    { english: 'pencil', hebrew: 'עיפרון' },
+    { english: 'book', hebrew: 'ספר' },
+    { english: 'teacher', hebrew: 'מורה' },
+    { english: 'train', hebrew: 'רכבת' },
+    { english: 'happy', hebrew: 'שמח' },
+  ];
+
+  useEffect(() => {
+    // Load default word list from CSV file
+    const loadDefaultWords = async () => {
+      try {
+        const response = await fetch('/English-Hebrew-Words-No-Duplicates.csv');
+        if (response.ok) {
+          const csvText = await response.text();
+          const parsedWords = parseCSV(csvText);
+          if (parsedWords.length > 0) {
+            setWords(parsedWords);
+            return;
+          }
+        }
+      } catch (error) {
+        console.log('Could not load default CSV, using sample words');
+      }
+      // Fallback to sample words if CSV not found
+      setWords(sampleWords);
+    };
+
+    loadDefaultWords();
+    
+    // Load leaderboard from localStorage
+    const savedLeaderboard = localStorage.getItem('vocabLeaderboard');
+    if (savedLeaderboard) setLeaderboard(JSON.parse(savedLeaderboard));
+  }, []);
+
+  const parseCSV = (csvText) => {
+    const lines = csvText.trim().split('\n');
+    const parsedWords = [];
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue;
+      const parts = line.split(',');
+      if (parts.length >= 2) {
+        parsedWords.push({ english: parts[0].trim(), hebrew: parts[1].trim() });
+      }
+    }
+    return parsedWords;
+  };
+
+  const handleFileUpload = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const text = e.target.result;
+      const parsedWords = parseCSV(text);
+      if (parsedWords.length > 0) {
+        setWords(parsedWords);
+        setFeedback('File loaded successfully! 🎉');
+        setShowFeedback(true);
+        setTimeout(() => setShowFeedback(false), 2000);
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  const buildRounds = (wordList) => {
+    const shuffled = [...wordList].sort(() => Math.random() - 0.5);
+    const maxRounds = Math.min(20, shuffled.length * 2);
+
+    const twoDirections = shuffled.flatMap((w) => ([
+      {
+        english: w.english,
+        hebrew: w.hebrew,
+        direction: 'toHebrew',
+        question: w.english,
+        answer: w.hebrew,
+      },
+      {
+        english: w.english,
+        hebrew: w.hebrew,
+        direction: 'toEnglish',
+        question: w.hebrew,
+        answer: w.english,
+      },
+    ]));
+
+    const mixed = twoDirections.sort(() => Math.random() - 0.5).slice(0, maxRounds);
+    return mixed;
+  };
+
+  const startGame = () => {
+    setGameStarted(true);
+    setGameComplete(false);
+    setScore(0);
+    setTotalAnswered(0);
+    setUserAnswer('');
+    setFeedback('');
+    setShowFeedback(false);
+    setCelebrating(false);
+
+    const newRounds = buildRounds(words);
+    setRounds(newRounds);
+    setRoundIndex(0);
+  };
+
+  const currentRound = rounds[roundIndex] || null;
+
+  const choices = useMemo(() => {
+    if (!currentRound) return [];
+    const correctAnswer = currentRound.answer;
+
+    const pool = words.filter((w) => (
+      !(w.english === currentRound.english && w.hebrew === currentRound.hebrew)
+    ));
+
+    const wrongs = [];
+    const poolCopy = [...pool];
+
+    while (wrongs.length < 3 && poolCopy.length > 0) {
+      const idx = Math.floor(Math.random() * poolCopy.length);
+      const w = poolCopy.splice(idx, 1)[0];
+      const candidate = currentRound.direction === 'toHebrew' ? w.hebrew : w.english;
+      if (candidate !== correctAnswer && !wrongs.includes(candidate)) {
+        wrongs.push(candidate);
+      }
+    }
+
+    const all = [correctAnswer, ...wrongs];
+    return all.sort(() => Math.random() - 0.5);
+  }, [currentRound, words]);
+
+  const checkAnswer = (selectedAnswer) => {
+    if (!currentRound || showFeedback) return;
+
+    setUserAnswer(selectedAnswer);
+    setShowFeedback(true);
+
+    const correct = selectedAnswer === currentRound.answer;
+
+    setTotalAnswered((t) => t + 1);
+    if (correct) {
+      setScore((s) => s + 1);
+      setFeedback('🎉 Perfect! Great job!');
+      setCelebrating(true);
+      setTimeout(() => setCelebrating(false), 1000);
+    } else {
+      setFeedback(`Not quite! The answer is: ${currentRound.answer}`);
+    }
+
+    const delay = correct ? 2500 : 4500;
+
+    setTimeout(() => {
+      setShowFeedback(false);
+      setUserAnswer('');
+
+      const isLast = roundIndex + 1 >= rounds.length;
+      if (isLast) {
+        endGame();
+      } else {
+        setRoundIndex((i) => i + 1);
+      }
+    }, delay);
+  };
+
+  const endGame = () => {
+    const finalScore = score;
+    const total = rounds.length || 20;
+    const gameResult = {
+      score: finalScore,
+      total,
+      percentage: Math.round((finalScore / total) * 100),
+      date: new Date().toISOString(),
+      timestamp: Date.now(),
+    };
+
+    const newLeaderboard = [...leaderboard, gameResult].sort((a, b) => b.score - a.score);
+    setLeaderboard(newLeaderboard);
+    localStorage.setItem('vocabLeaderboard', JSON.stringify(newLeaderboard));
+
+    setGameComplete(true);
+    setGameStarted(false);
+  };
+
+  if (!gameStarted && !gameComplete) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-400 via-pink-400 to-blue-400 flex items-center justify-center p-4">
+        <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-2xl w-full text-center">
+          <div className="flex justify-center mb-6">
+            <Sparkles className="w-20 h-20 text-purple-500" />
+          </div>
+
+          <h1 className="text-4xl font-bold text-gray-800 mb-4">
+            Vocabulary Adventure for Maayan! 🚀
+          </h1>
+
+          <p className="text-xl text-gray-600 mb-8">
+            Test your English and Hebrew skills!
+          </p>
+
+          <div className="mb-8 p-6 bg-blue-50 rounded-2xl">
+            <h2 className="text-lg font-semibold mb-4 text-gray-700">
+              📁 Upload Your Word List (CSV)
+            </h2>
+            <label className="cursor-pointer inline-flex items-center px-6 py-3 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-all transform hover:scale-105">
+              <Upload className="mr-2" />
+              Choose CSV File
+              <input
+                type="file"
+                accept=".csv"
+                onChange={handleFileUpload}
+                className="hidden"
+              />
+            </label>
+            <p className="text-sm text-gray-500 mt-3">
+              CSV format: English,Hebrew (one pair per line)
+            </p>
+          </div>
+
+          <button
+            onClick={startGame}
+            className="px-10 py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-2xl font-bold rounded-2xl hover:from-purple-600 hover:to-pink-600 transition-all transform hover:scale-105 shadow-lg flex items-center justify-center mx-auto"
+          >
+            <Play className="mr-3" />
+            Start Playing!
+          </button>
+
+          <p className="text-sm text-gray-500 mt-6">
+            Using {words.length} words
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (gameComplete) {
+    const latestGame = leaderboard[leaderboard.length - 1];
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-400 via-pink-400 to-blue-400 flex items-center justify-center p-4">
+        <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-2xl w-full">
+          <div className="text-center mb-8">
+            <Award className="w-20 h-20 text-yellow-500 mx-auto mb-4" />
+            <h1 className="text-4xl font-bold text-gray-800 mb-2">Game Complete!</h1>
+            <p className="text-6xl font-bold text-purple-600 mb-2">{score} / {rounds.length || 20}</p>
+            <p className="text-3xl font-semibold text-gray-700">{latestGame?.percentage}%</p>
+          </div>
+
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">🏆 Maayan's Leaderboard</h2>
+            <div className="space-y-3 max-h-96 overflow-y-auto">
+              {leaderboard.map((game, index) => {
+                const isLatest = index === leaderboard.length - 1;
+                const date = new Date(game.date);
+                const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+                return (
+                  <div
+                    key={game.timestamp}
+                    className={`p-4 rounded-xl flex justify-between items-center ${
+                      isLatest
+                        ? 'bg-gradient-to-r from-yellow-100 to-yellow-200 border-2 border-yellow-400'
+                        : 'bg-gray-50'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-4">
+                      <div className="text-2xl font-bold text-gray-600">#{leaderboard.length - index}</div>
+                      <div>
+                        <div className="font-semibold text-gray-800">
+                          {game.score} / {game.total} ({game.percentage}%)
+                        </div>
+                        <div className="text-sm text-gray-600">{dateStr}</div>
+                      </div>
+                    </div>
+                    {isLatest && (
+                      <div className="bg-yellow-500 text-white px-3 py-1 rounded-full text-sm font-bold">
+                        Latest
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <button
+            onClick={startGame}
+            className="w-full px-8 py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-2xl font-bold rounded-2xl hover:from-purple-600 hover:to-pink-600 transition-all transform hover:scale-105 shadow-lg flex items-center justify-center"
+          >
+            <Play className="mr-3" />
+            Play Again!
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-purple-400 via-pink-400 to-blue-400 p-4">
+      <div className="max-w-4xl mx-auto mb-6">
+        <div className="bg-white rounded-2xl shadow-lg p-4 flex justify-between items-center">
+          <div className="flex items-center space-x-6">
+            <div className="flex items-center">
+              <Star className="w-6 h-6 text-yellow-500 mr-2" />
+              <span className="text-2xl font-bold text-gray-800">{score}</span>
+              <span className="text-gray-600 ml-2">/ {totalAnswered}</span>
+            </div>
+            <div className="text-lg font-semibold text-purple-600">
+              Question {totalAnswered + 1} of {rounds.length}
+            </div>
+            <div className="text-lg text-gray-600">
+              {totalAnswered > 0 ? `${Math.round((score / totalAnswered) * 100)}%` : '0%'}
+            </div>
+          </div>
+          <button
+            onClick={startGame}
+            className="flex items-center px-4 py-2 bg-purple-500 text-white rounded-xl hover:bg-purple-600 transition-all"
+          >
+            <RotateCcw className="w-4 h-4 mr-2" />
+            Restart
+          </button>
+        </div>
+      </div>
+
+      <div className="max-w-4xl mx-auto">
+        <div className={`bg-white rounded-3xl shadow-2xl p-8 transform transition-all duration-300 ${celebrating ? 'scale-105' : 'scale-100'}`}>
+          {currentRound && (
+            <>
+              <div className="text-center mb-8">
+                <div className="inline-block px-6 py-2 bg-purple-100 text-purple-700 rounded-full text-sm font-semibold mb-4">
+                  {currentRound.direction === 'toHebrew' ? 'English → Hebrew' : 'Hebrew → English'}
+                </div>
+
+                <h2 className="text-6xl font-bold text-gray-800 mb-6 min-h-[80px] flex items-center justify-center">
+                  {currentRound.question}
+                </h2>
+
+                <p className="text-xl text-gray-600">
+                  What's the translation?
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                {choices.map((choice) => {
+                  const isCorrectChoice = showFeedback && choice === currentRound.answer;
+                  const isWrongClicked = showFeedback && choice === userAnswer && userAnswer !== currentRound.answer;
+
+                  let buttonClass = 'bg-gradient-to-r from-purple-100 to-pink-100 text-gray-800 hover:from-purple-200 hover:to-pink-200';
+
+                  if (isCorrectChoice) {
+                    buttonClass = 'bg-green-500 text-white';
+                  } else if (isWrongClicked) {
+                    buttonClass = 'bg-red-500 text-white';
+                  }
+
+                  return (
+                    <button
+                      key={choice}
+                      onClick={() => checkAnswer(choice)}
+                      disabled={showFeedback}
+                      className={`w-full px-6 py-4 text-2xl font-semibold rounded-2xl transition-all shadow-lg ${buttonClass} ${
+                        showFeedback ? 'cursor-not-allowed' : 'cursor-pointer transform hover:scale-105'
+                      }`}
+                      dir={currentRound.direction === 'toEnglish' ? 'ltr' : 'rtl'}
+                    >
+                      {choice}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {showFeedback && (
+                <div
+                  className={`mt-6 p-6 rounded-2xl text-center text-xl font-bold ${
+                    userAnswer === currentRound.answer
+                      ? 'bg-green-100 text-green-700'
+                      : 'bg-orange-100 text-orange-700'
+                  }`}
+                >
+                  {feedback}
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+
+      {celebrating && (
+        <div className="fixed inset-0 pointer-events-none">
+          {[...Array(20)].map((_, i) => (
+            <Star
+              key={i}
+              className="absolute text-yellow-400 animate-ping"
+              style={{
+                top: `${Math.random() * 100}%`,
+                left: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 0.5}s`,
+              }}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default VocabGame;

@@ -1,0 +1,99 @@
+╔═══════════════════════════════════════════════════════════════╗
+║                                                               ║
+║          MANUAL START INSTRUCTIONS FOR THE GAME               ║
+║                                                               ║
+╚═══════════════════════════════════════════════════════════════╝
+
+If the automatic start isn't working, follow these steps:
+
+═══════════════════════════════════════════════════════════════════
+
+OPTION 1: Double-Click the Batch File
+────────────────────────────────────────
+
+1. Find the file:  START-GAME.bat
+2. Double-click it
+3. Wait 20-30 seconds
+4. Browser should open automatically to http://localhost:3000
+
+═══════════════════════════════════════════════════════════════════
+
+OPTION 2: Use PowerShell Commands
+────────────────────────────────────────
+
+1. Open PowerShell in this folder
+2. Run this command:
+
+   node .\node_modules\react-scripts\bin\react-scripts.js start
+
+3. Wait for "Compiled successfully!" message
+4. Open browser to: http://localhost:3000
+
+═══════════════════════════════════════════════════════════════════
+
+OPTION 3: If Node Modules Are Missing
+────────────────────────────────────────
+
+If you get "cannot find module" errors:
+
+1. Delete the node_modules folder (if it exists)
+2. Delete package-lock.json (if it exists)
+3. Run: npm cache clean --force
+4. Run: npm install
+   (This will take 2-3 minutes)
+5. Then run: npm start
+
+═══════════════════════════════════════════════════════════════════
+
+TROUBLESHOOTING:
+────────────────────────────────────────
+
+Problem: "Port 3000 already in use"
+Solution: 
+  - Press Ctrl+C in any open PowerShell windows
+  - Or run: Get-Process -Name node | Stop-Process -Force
+
+Problem: "Cannot find module 'react-scripts'"
+Solution:
+  - Run: npm install react-scripts --save
+  - Then: npm start
+
+Problem: Browser doesn't open automatically
+Solution:
+  - Manually open browser
+  - Go to: http://localhost:3000
+
+Problem: "npm not recognized"
+Solution:
+  - Install Node.js from: https://nodejs.org/
+  - Restart PowerShell
+  - Try again
+
+═══════════════════════════════════════════════════════════════════
+
+VERIFICATION:
+────────────────────────────────────────
+
+You'll know it's working when you see:
+
+✓ "Compiled successfully!" in the terminal
+✓ "webpack compiled"  message
+✓ Browser opens automatically (or manual http://localhost:3000 works)
+✓ Colorful gradient background with the game title
+
+═══════════════════════════════════════════════════════════════════
+
+TO STOP THE SERVER:
+────────────────────────────────────────
+
+Press: Ctrl + C in the PowerShell window
+
+═══════════════════════════════════════════════════════════════════
+
+Need more help? Check these files:
+  - QUICK_START.md
+  - README.md  
+  - PROJECT_SUMMARY.md
+
+═══════════════════════════════════════════════════════════════════
+

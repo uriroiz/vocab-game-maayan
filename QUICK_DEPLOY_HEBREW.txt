@@ -1,0 +1,80 @@
+╔═══════════════════════════════════════════════════════════════╗
+║                                                               ║
+║     🚀 מדריך מהיר לפרסום המשחק - GitHub + Vercel 🚀        ║
+║                                                               ║
+╚═══════════════════════════════════════════════════════════════╝
+
+✅ המשחק מוכן! רשימת המילים נטענת אוטומטית - אין צורך להעלות קובץ!
+
+═══════════════════════════════════════════════════════════════════
+
+📋 שלב 1: GitHub (5 דקות)
+────────────────────────────────────
+
+1. פתח PowerShell בתיקיית הפרויקט
+
+2. הרץ את הסקריפט:
+   .\SETUP_GITHUB.ps1
+
+   או בצורה ידנית:
+   git init
+   git add .
+   git commit -m "Initial commit"
+   git branch -M main
+   git remote add origin https://github.com/YOUR_USERNAME/REPO_NAME.git
+   git push -u origin main
+
+3. יצירת Repository ב-GitHub:
+   - היכנס ל-github.com
+   - לחץ "+" → "New repository"
+   - תן שם (למשל: vocab-game-maayan)
+   - אל תסמן "Initialize with README"
+   - לחץ "Create repository"
+   - העתק את ה-URL
+
+═══════════════════════════════════════════════════════════════════
+
+📋 שלב 2: Vercel (3 דקות)
+────────────────────────────────────
+
+1. היכנס ל-vercel.com
+2. לחץ "Sign Up" → "Continue with GitHub"
+3. לחץ "Add New Project"
+4. בחר את ה-repository שלך
+5. לחץ "Deploy" (אל תשנה כלום!)
+6. המתן 2-3 דקות
+7. קבל את הקישור! (למשל: https://vocab-game.vercel.app)
+
+═══════════════════════════════════════════════════════════════════
+
+🎉 סיימת! המשחק פורסם!
+
+- מעיין יכולה לשחק בלי להעלות קובץ
+- המשחק עובד על כל מכשיר
+- Leaderboard נשמר בכל מכשיר
+
+═══════════════════════════════════════════════════════════════════
+
+🔄 עדכון המשחק בעתיד:
+
+1. ערוך את הקובץ: English-Hebrew-Words-No-Duplicates.csv
+2. העתק ל-public:
+   Copy-Item "English-Hebrew-Words-No-Duplicates.csv" -Destination "public\English-Hebrew-Words-No-Duplicates.csv" -Force
+3. Push:
+   git add .
+   git commit -m "Updated words"
+   git push
+4. Vercel יעדכן אוטומטית תוך דקה!
+
+═══════════════════════════════════════════════════════════════════
+
+📚 מדריכים מפורטים:
+
+- DEPLOYMENT_HEBREW.md - מדריך מלא בעברית
+- VERCEL_DEPLOY.md - מדריך Vercel באנגלית
+- README.md - תיעוד מלא
+
+═══════════════════════════════════════════════════════════════════
+
+🎯 זה הכל! מעיין יכולה להתחיל לשחק! 🎮✨
+
