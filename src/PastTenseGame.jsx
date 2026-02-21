@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Star, Award, Play, RotateCcw, Clock, ArrowRight } from 'lucide-react';
 
 const PastTenseGame = () => {
@@ -13,7 +13,6 @@ const PastTenseGame = () => {
   const [celebrating, setCelebrating] = useState(false);
   const [gameComplete, setGameComplete] = useState(false);
   const [leaderboard, setLeaderboard] = useState([]);
-  const [inputFocused, setInputFocused] = useState(false);
   const [showHint, setShowHint] = useState(false);
 
   // Irregular verbs - Present → Past
@@ -56,28 +55,6 @@ const PastTenseGame = () => {
     if (savedLeaderboard) setLeaderboard(JSON.parse(savedLeaderboard));
   }, []);
 
-  // Normalize answer for comparison
-  const normalizeAnswer = (answer) => {
-    return answer.trim().toLowerCase().replace(/\s+/g, ' ').replace(/\s*\/\s*/g, ' / ');
-  };
-
-  // Check if user's answer matches the correct answer
-  const checkAnswerMatch = (userAnswer, correctAnswer) => {
-    const normalizedUser = normalizeAnswer(userAnswer);
-    const normalizedCorrect = normalizeAnswer(correctAnswer);
-    
-    // For "was / were", accept either "was / were", "was/were", "was, were", or just "was" or "were"
-    if (correctAnswer === 'was / were') {
-      const acceptedAnswers = ['was / were', 'was/were', 'was, were', 'was and were', 'was were'];
-      return acceptedAnswers.includes(normalizedUser) || 
-             normalizedUser === 'was' || 
-             normalizedUser === 'were';
-    }
-    
-    // Exact match
-    return normalizedUser === normalizedCorrect;
-  };
-
   const buildRounds = () => {
     const shuffled = [...verbs].sort(() => Math.random() - 0.5);
     return shuffled.map((v) => ({
@@ -105,16 +82,35 @@ const PastTenseGame = () => {
 
   const currentRound = rounds[roundIndex] || null;
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!currentRound || showFeedback || !userAnswer.trim()) return;
+  const choices = useMemo(() => {
+    if (!currentRound) return [];
+    const correctAnswer = currentRound.past;
+    const pool = verbs.filter(
+      (v) => !(v.present === currentRound.present && v.past === currentRound.past)
+    );
+    const wrongs = [];
+    const poolCopy = [...pool];
+    while (wrongs.length < 3 && poolCopy.length > 0) {
+      const idx = Math.floor(Math.random() * poolCopy.length);
+      const v = poolCopy.splice(idx, 1)[0];
+      if (v.past !== correctAnswer && !wrongs.includes(v.past)) {
+        wrongs.push(v.past);
+      }
+    }
+    const all = [correctAnswer, ...wrongs];
+    return all.sort(() => Math.random() - 0.5);
+  }, [currentRound, verbs]);
 
-    const correct = checkAnswerMatch(userAnswer, currentRound.past);
+  const checkAnswer = (selectedAnswer) => {
+    if (!currentRound || showFeedback) return;
 
-    setTotalAnswered((t) => t + 1);
+    setUserAnswer(selectedAnswer);
     setShowFeedback(true);
     setShowHint(false);
 
+    const correct = selectedAnswer === currentRound.past;
+
+    setTotalAnswered((t) => t + 1);
     if (correct) {
       setScore((s) => s + 1);
       setFeedback('🎉 Excellent! You got it!');
@@ -135,18 +131,8 @@ const PastTenseGame = () => {
         endGame();
       } else {
         setRoundIndex((i) => i + 1);
-        setTimeout(() => {
-          const input = document.getElementById('past-tense-input');
-          if (input) input.focus();
-        }, 100);
       }
     }, delay);
-  };
-
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter' && !showFeedback) {
-      handleSubmit(e);
-    }
   };
 
   const endGame = () => {
@@ -185,7 +171,7 @@ const PastTenseGame = () => {
             Learn irregular verbs in English
           </p>
           <p className="text-sm sm:text-base text-gray-500 mb-6 sm:mb-8">
-            See a verb in present tense → Write its past tense!
+            See a verb in present tense → Choose its past tense!
           </p>
 
           <div className="mb-6 sm:mb-8 p-4 sm:p-6 bg-indigo-50 rounded-xl sm:rounded-2xl">
@@ -355,51 +341,38 @@ const PastTenseGame = () => {
                 )}
               </div>
 
-              <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
-                <div className="relative">
-                  <input
-                    id="past-tense-input"
-                    type="text"
-                    value={userAnswer}
-                    onChange={(e) => setUserAnswer(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    onFocus={() => setInputFocused(true)}
-                    onBlur={() => setInputFocused(false)}
-                    disabled={showFeedback}
-                    placeholder="Type the past tense..."
-                    autoFocus
-                    autoComplete="off"
-                    className={`w-full px-4 sm:px-6 md:px-8 py-4 sm:py-5 md:py-6 text-xl sm:text-2xl md:text-3xl lg:text-4xl font-semibold text-center rounded-xl sm:rounded-2xl border-4 transition-all ${
-                      showFeedback
-                        ? checkAnswerMatch(userAnswer, currentRound.past)
-                          ? 'bg-green-100 border-green-500 text-green-700'
-                          : 'bg-red-100 border-red-500 text-red-700'
-                        : inputFocused
-                        ? 'bg-indigo-50 border-indigo-400 text-gray-800'
-                        : 'bg-gray-50 border-indigo-300 text-gray-800'
-                    } focus:outline-none focus:ring-4 focus:ring-indigo-300 ${
-                      showFeedback ? 'cursor-not-allowed' : ''
-                    }`}
-                  />
-                </div>
+              <div className="space-y-2 sm:space-y-3 md:space-y-4">
+                {choices.map((choice) => {
+                  const isCorrectChoice = showFeedback && choice === currentRound.past;
+                  const isWrongClicked = showFeedback && choice === userAnswer && userAnswer !== currentRound.past;
 
-                <button
-                  type="submit"
-                  disabled={showFeedback || !userAnswer.trim()}
-                  className={`w-full px-6 sm:px-8 py-4 sm:py-5 bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-lg sm:text-xl md:text-2xl font-bold rounded-xl sm:rounded-2xl transition-all shadow-lg ${
-                    showFeedback || !userAnswer.trim()
-                      ? 'opacity-50 cursor-not-allowed'
-                      : 'hover:from-indigo-600 hover:to-purple-600 transform hover:scale-105 active:scale-95'
-                  }`}
-                >
-                  Check Answer
-                </button>
-              </form>
+                  let buttonClass = 'bg-gradient-to-r from-indigo-100 to-purple-100 text-gray-800 hover:from-indigo-200 hover:to-purple-200';
+
+                  if (isCorrectChoice) {
+                    buttonClass = 'bg-green-500 text-white';
+                  } else if (isWrongClicked) {
+                    buttonClass = 'bg-red-500 text-white';
+                  }
+
+                  return (
+                    <button
+                      key={choice}
+                      onClick={() => checkAnswer(choice)}
+                      disabled={showFeedback}
+                      className={`w-full px-4 sm:px-5 md:px-6 py-3 sm:py-3.5 md:py-4 text-base sm:text-lg md:text-xl lg:text-2xl font-semibold rounded-xl sm:rounded-2xl transition-all shadow-lg ${buttonClass} ${
+                        showFeedback ? 'cursor-not-allowed' : 'cursor-pointer active:scale-95 sm:hover:scale-105'
+                      }`}
+                    >
+                      {choice}
+                    </button>
+                  );
+                })}
+              </div>
 
               {showFeedback && (
                 <div
                   className={`mt-4 sm:mt-6 p-4 sm:p-5 md:p-6 rounded-xl sm:rounded-2xl text-center text-base sm:text-lg md:text-xl font-bold ${
-                    checkAnswerMatch(userAnswer, currentRound.past)
+                    userAnswer === currentRound.past
                       ? 'bg-green-100 text-green-700'
                       : 'bg-orange-100 text-orange-700'
                   }`}
