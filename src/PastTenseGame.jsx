@@ -38,6 +38,16 @@ const PastTenseGame = () => {
     { present: 'put', past: 'put', hint: 'I put it on the table' },
     { present: 'bring', past: 'brought', hint: 'She brought cookies' },
     { present: 'begin', past: 'began', hint: 'The movie began' },
+    { present: 'eat', past: 'ate', hint: 'I ate breakfast' },
+    { present: 'drink', past: 'drank', hint: 'She drank water' },
+    { present: 'swim', past: 'swam', hint: 'I swam in the pool' },
+    { present: 'run', past: 'ran', hint: 'He ran fast' },
+    { present: 'write', past: 'wrote', hint: 'I wrote a letter' },
+    { present: 'read', past: 'read', hint: 'I read a book yesterday' },
+    { present: 'speak', past: 'spoke', hint: 'She spoke English' },
+    { present: 'keep', past: 'kept', hint: 'I kept the key' },
+    { present: 'sit', past: 'sat', hint: 'He sat down' },
+    { present: 'stand', past: 'stood', hint: 'They stood up' },
   ];
 
   useEffect(() => {
