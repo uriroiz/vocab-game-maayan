@@ -1,13 +1,13 @@
 {
   "files": {
-    "main.css": "/vocab-game-maayan/static/css/main.68c1f689.css",
-    "main.js": "/vocab-game-maayan/static/js/main.7c6bebf8.js",
-    "index.html": "/vocab-game-maayan/index.html",
-    "main.68c1f689.css.map": "/vocab-game-maayan/static/css/main.68c1f689.css.map",
-    "main.7c6bebf8.js.map": "/vocab-game-maayan/static/js/main.7c6bebf8.js.map"
+    "main.css": "./static/css/main.527be01b.css",
+    "main.js": "./static/js/main.0e2edd7e.js",
+    "index.html": "./index.html",
+    "main.527be01b.css.map": "./static/css/main.527be01b.css.map",
+    "main.0e2edd7e.js.map": "./static/js/main.0e2edd7e.js.map"
   },
   "entrypoints": [
-    "static/css/main.68c1f689.css",
-    "static/js/main.7c6bebf8.js"
+    "static/css/main.527be01b.css",
+    "static/js/main.0e2edd7e.js"
   ]
 }
