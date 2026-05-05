@@ -12,6 +12,22 @@ const ALL_WORDS = [
 ];
 
 const TARGET = ALL_WORDS.filter((w) => !SPELLING_WORDS.has(w.toLowerCase()));
+const SIMPLE_HEBREW = {
+  across: 'לרוחב', agree: 'להסכים', around: 'מסביב', 'as well as': 'וגם', asleep: 'ישן',
+  Earth: 'כדור הארץ', exactly: 'בדיוק', fairly: 'די', glasses: 'משקפיים', grow: 'לגדול',
+  hang: 'לתלות', happen: 'לקרות', high: 'גבוה', hill: 'גבעה', immediately: 'מיד',
+  narrow: 'צר', 'not too': 'לא מדי', part: 'חלק', photo: 'תמונה', refrigerator: 'מקרר',
+  save: 'לחסוך', simple: 'פשוט', slow: 'איטי', somebody: 'מישהו', stairs: 'מדרגות',
+  steal: 'לגנוב', strange: 'מוזר', suitcase: 'מזוודה', 'throw away': 'לזרוק', toothbrush: 'מברשת שיניים',
+  trash: 'אשפה', vacation: 'חופשה', waste: 'לבזבז', way: 'דרך', above: 'מעל',
+  advice: 'עצה', advise: 'לייעץ', bright: 'בהיר', classmate: 'חבר לכיתה', clear: 'ברור',
+  company: 'חברה', cover: 'לכסות', deep: 'עמוק', department: 'מחלקה', down: 'למטה',
+  effort: 'מאמץ', 'enjoy yourself': 'תיהנה', follow: 'לעקוב', form: 'טופס', 'Guess what!': 'נחש מה!',
+  'have got': 'יש לי', hear: 'לשמוע', hole: 'חור', hope: 'לקוות', information: 'מידע',
+  kill: 'להרוג', lie: 'לשקר', meeting: 'פגישה', news: 'חדשות', office: 'משרד',
+  pair: 'זוג', pass: 'לעבור', round: 'סיבוב', spend: 'לבזבז', suit: 'חליפה',
+  sure: 'בטוח', 'the truth': 'האמת', unusual: 'יוצא דופן', war: 'מלחמה',
+};
 
 const shuffle = (arr) => [...arr].sort(() => Math.random() - 0.5);
 
@@ -24,20 +40,11 @@ export default function MatchHebrewGame() {
   const [feedback, setFeedback] = useState('');
 
   useEffect(() => {
-    const load = async () => {
-      const res = await fetch('/English-Hebrew-Words-No-Duplicates.csv');
-      const txt = await res.text();
-      const lines = txt.trim().split('\n').slice(1);
-      const map = new Map();
-      for (const line of lines) {
-        const [en, he] = line.split(',');
-        if (!en || !he) continue;
-        map.set(en.trim().toLowerCase(), { english: en.trim(), hebrew: he.trim() });
-      }
-      const selected = TARGET.map((w) => map.get(w.toLowerCase())).filter(Boolean);
-      setPairs(selected);
-    };
-    load();
+    const selected = TARGET.map((w) => ({
+      english: w,
+      hebrew: SIMPLE_HEBREW[w] || `תרגום: ${w}`,
+    }));
+    setPairs(selected);
   }, []);
 
   const roundPairs = useMemo(() => shuffle(pairs).slice(0, 8).map((p, i) => ({ ...p, id: i + 1 })), [pairs, started]);
@@ -69,7 +76,7 @@ export default function MatchHebrewGame() {
     }
   }, [leftPick, rightPick]);
 
-  if (!started) return <div className="min-h-screen bg-gradient-to-br from-amber-300 via-orange-300 to-rose-300 flex items-center justify-center p-4"><div className="bg-white rounded-3xl shadow-2xl p-8 max-w-2xl w-full text-center"><Languages className="w-16 h-16 text-orange-500 mx-auto mb-4" /><h1 className="text-4xl font-bold mb-3">Find & Match</h1><p className="text-lg text-gray-600 mb-6">Match English words to Hebrew translation</p><button onClick={start} className="px-10 py-4 bg-gradient-to-r from-orange-500 to-rose-500 text-white text-2xl font-bold rounded-2xl"><Play className="w-6 h-6 mr-2 inline" />Start</button></div></div>;
+  if (!started) return <div className="min-h-screen bg-gradient-to-br from-amber-300 via-orange-300 to-rose-300 flex items-center justify-center p-4"><div className="bg-white rounded-3xl shadow-2xl p-8 max-w-2xl w-full text-center"><Languages className="w-16 h-16 text-orange-500 mx-auto mb-4" /><h1 className="text-4xl font-bold mb-3">Find & Match</h1><p className="text-lg text-gray-600 mb-2">Match English words to Hebrew translation</p><p className="text-sm text-gray-500 mb-6">Loaded pairs: {pairs.length}</p><button onClick={start} disabled={pairs.length === 0} className="px-10 py-4 bg-gradient-to-r from-orange-500 to-rose-500 text-white text-2xl font-bold rounded-2xl disabled:opacity-50"><Play className="w-6 h-6 mr-2 inline" />Start</button></div></div>;
 
   const done = matchedIds.size === roundPairs.length && roundPairs.length > 0;
 

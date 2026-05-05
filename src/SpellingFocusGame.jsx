@@ -9,6 +9,7 @@ const SPELLING_WORDS = [
 
 const normalize = (s) => s.toLowerCase().replace(/\s+/g, ' ').trim();
 const hintMask = (word) => word.replace(/[a-zA-Z]/g, '_');
+const MEMORIZE_MS = 5000;
 
 export default function SpellingFocusGame() {
   const [rounds, setRounds] = useState([]);
@@ -21,6 +22,7 @@ export default function SpellingFocusGame() {
   const [answered, setAnswered] = useState(0);
   const [feedback, setFeedback] = useState('');
   const [showFeedback, setShowFeedback] = useState(false);
+  const [showHint, setShowHint] = useState(false);
 
   const current = rounds[index];
 
@@ -35,7 +37,8 @@ export default function SpellingFocusGame() {
     setScore(0);
     setAnswered(0);
     setShowFeedback(false);
-    setTimeout(() => setShowWord(false), 2200);
+    setShowHint(false);
+    setTimeout(() => setShowWord(false), MEMORIZE_MS);
   };
 
   const moveNext = () => {
@@ -47,7 +50,8 @@ export default function SpellingFocusGame() {
       setIndex((v) => v + 1);
       setShowWord(true);
       setInput('');
-      setTimeout(() => setShowWord(false), 2200);
+      setShowHint(false);
+      setTimeout(() => setShowWord(false), MEMORIZE_MS);
     }
   };
 
@@ -87,7 +91,23 @@ export default function SpellingFocusGame() {
         </div>
         <div className="text-center mb-6">
           {showWord ? <h2 className="text-5xl font-bold text-gray-900 break-words">{current}</h2> : <h2 className="text-5xl font-bold text-gray-500 break-words tracking-widest">{hintMask(current)}</h2>}
-          <p className="text-gray-600 mt-3">{showWord ? 'Memorize...' : 'Type the full word/phrase'}</p>
+          <p className="text-gray-600 mt-3">{showWord ? 'Memorize for 5 seconds...' : 'Type the full word/phrase'}</p>
+          {!showWord && (
+            <div className="mt-3">
+              <button
+                type="button"
+                onClick={() => setShowHint((v) => !v)}
+                className="px-4 py-2 bg-cyan-100 text-cyan-800 rounded-xl font-semibold"
+              >
+                {showHint ? 'Hide Hint' : 'Hint'}
+              </button>
+            </div>
+          )}
+          {showHint && !showWord && (
+            <p className="text-lg text-gray-700 mt-3">
+              Hint: starts with <span className="font-bold">{current?.[0]}</span>, length <span className="font-bold">{current?.replace(/\s/g, '').length}</span> letters
+            </p>
+          )}
         </div>
         <form onSubmit={submit} className="space-y-4">
           <input value={input} onChange={(e) => setInput(e.target.value)} autoFocus autoComplete="off" className="w-full px-5 py-4 text-3xl text-center rounded-2xl border-4 border-blue-300 focus:border-blue-500 focus:outline-none" placeholder="Type spelling here" />
