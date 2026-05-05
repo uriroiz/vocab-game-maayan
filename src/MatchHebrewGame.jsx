@@ -39,6 +39,10 @@ export default function MatchHebrewGame() {
   const [rightPick, setRightPick] = useState(null);
   const [matchedIds, setMatchedIds] = useState(new Set());
   const [feedback, setFeedback] = useState('');
+  const [hintId, setHintId] = useState(null);
+  const [wrongLeftId, setWrongLeftId] = useState(null);
+  const [wrongRightId, setWrongRightId] = useState(null);
+  const [showCorrectId, setShowCorrectId] = useState(null);
 
   useEffect(() => {
     const selected = TARGET.map((w) => ({
@@ -69,6 +73,10 @@ export default function MatchHebrewGame() {
     setRightPick(null);
     setMatchedIds(new Set());
     setFeedback('');
+    setHintId(null);
+    setWrongLeftId(null);
+    setWrongRightId(null);
+    setShowCorrectId(null);
   };
 
   useEffect(() => {
@@ -78,15 +86,27 @@ export default function MatchHebrewGame() {
         next.add(leftPick.id);
         setMatchedIds(next);
         setFeedback('Great match!');
+        setHintId(null);
       } else {
-        setFeedback('Not a match, try again.');
+        setWrongLeftId(leftPick.id);
+        setWrongRightId(rightPick.id);
+        setShowCorrectId(leftPick.id);
+        setFeedback('Not a match. Showing the correct answer.');
       }
       setTimeout(() => {
+        if (leftPick.id !== rightPick.id) {
+          const next = new Set(matchedIds);
+          next.add(leftPick.id);
+          setMatchedIds(next);
+        }
         setLeftPick(null);
         setRightPick(null);
-      }, 500);
+        setWrongLeftId(null);
+        setWrongRightId(null);
+        setShowCorrectId(null);
+      }, 900);
     }
-  }, [leftPick, rightPick]);
+  }, [leftPick, rightPick, matchedIds]);
 
   if (!started) return <div className="min-h-screen bg-gradient-to-br from-amber-300 via-orange-300 to-rose-300 flex items-center justify-center p-4"><div className="bg-white rounded-3xl shadow-2xl p-8 max-w-2xl w-full text-center"><Languages className="w-16 h-16 text-orange-500 mx-auto mb-4" /><h1 className="text-4xl font-bold mb-3">Find & Match</h1><p className="text-lg text-gray-600 mb-2">Match English words to Hebrew translation</p><p className="text-sm text-gray-500 mb-6">Loaded pairs: {pairs.length}</p><button onClick={start} disabled={pairs.length === 0} className="px-10 py-4 bg-gradient-to-r from-orange-500 to-rose-500 text-white text-2xl font-bold rounded-2xl disabled:opacity-50"><Play className="w-6 h-6 mr-2 inline" />Start</button></div></div>;
 
@@ -97,17 +117,40 @@ export default function MatchHebrewGame() {
       <div className="max-w-5xl mx-auto bg-white rounded-3xl shadow-2xl p-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-bold">Matches: {matchedIds.size}/{roundPairs.length}</h2>
-          <button onClick={start} className="px-4 py-2 bg-orange-500 text-white rounded-xl"><RotateCcw className="w-4 h-4 inline mr-1" />New Round</button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => {
+                const remaining = roundPairs.filter((p) => !matchedIds.has(p.id));
+                if (remaining.length > 0) setHintId(remaining[0].id);
+              }}
+              className="px-4 py-2 bg-yellow-400 text-yellow-900 rounded-xl font-semibold"
+            >
+              Hint
+            </button>
+            <button onClick={start} className="px-4 py-2 bg-orange-500 text-white rounded-xl"><RotateCcw className="w-4 h-4 inline mr-1" />New Round</button>
+          </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             {left.map((item) => (
-              <button key={`l-${item.id}`} disabled={matchedIds.has(item.id)} onClick={() => setLeftPick(item)} className={`w-full p-3 rounded-xl text-left font-semibold ${matchedIds.has(item.id) ? 'bg-green-200' : leftPick?.id === item.id ? 'bg-blue-200' : 'bg-gray-100 hover:bg-gray-200'}`}>{item.english}</button>
+              <button key={`l-${item.id}`} disabled={matchedIds.has(item.id)} onClick={() => setLeftPick(item)} className={`w-full p-3 rounded-xl text-left font-semibold ${
+                matchedIds.has(item.id) ? 'bg-green-200' :
+                wrongLeftId === item.id ? 'bg-red-200 text-red-800' :
+                showCorrectId === item.id ? 'bg-green-200' :
+                hintId === item.id ? 'ring-4 ring-yellow-300 bg-yellow-50' :
+                leftPick?.id === item.id ? 'bg-blue-200' : 'bg-gray-100 hover:bg-gray-200'
+              }`}>{item.english}</button>
             ))}
           </div>
           <div className="space-y-2">
             {right.map((item) => (
-              <button key={`r-${item.id}`} dir="rtl" disabled={matchedIds.has(item.id)} onClick={() => setRightPick(item)} className={`w-full p-3 rounded-xl text-right font-semibold ${matchedIds.has(item.id) ? 'bg-green-200' : rightPick?.id === item.id ? 'bg-blue-200' : 'bg-gray-100 hover:bg-gray-200'}`}>{item.hebrew}</button>
+              <button key={`r-${item.id}`} dir="rtl" disabled={matchedIds.has(item.id)} onClick={() => setRightPick(item)} className={`w-full p-3 rounded-xl text-right font-semibold ${
+                matchedIds.has(item.id) ? 'bg-green-200' :
+                wrongRightId === item.id ? 'bg-red-200 text-red-800' :
+                showCorrectId === item.id ? 'bg-green-200' :
+                hintId === item.id ? 'ring-4 ring-yellow-300 bg-yellow-50' :
+                rightPick?.id === item.id ? 'bg-blue-200' : 'bg-gray-100 hover:bg-gray-200'
+              }`}>{item.hebrew}</button>
             ))}
           </div>
         </div>
