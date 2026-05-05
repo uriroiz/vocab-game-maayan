@@ -1,45 +1,25 @@
 import React, { useState } from 'react';
-import VocabGame from './VocabGame.jsx';
-import VocabGameTyping from './VocabGameTyping.jsx';
-import PastTenseGame from './PastTenseGame.jsx';
-import WordScrambleGame from './WordScrambleGame.jsx';
-import { BookOpen, Keyboard, Clock, ArrowLeft, Shuffle } from 'lucide-react';
+import SpellingFocusGame from './SpellingFocusGame.jsx';
+import MatchHebrewGame from './MatchHebrewGame.jsx';
+import { ArrowLeft, PenSquare, Languages } from 'lucide-react';
 
 function App() {
   const [selectedGame, setSelectedGame] = useState(null);
 
-  if (selectedGame === 'vocab') {
+  if (selectedGame === 'spellingFocus') {
     return (
       <div>
         <BackButton onClick={() => setSelectedGame(null)} />
-        <VocabGame />
+        <SpellingFocusGame />
       </div>
     );
   }
 
-  if (selectedGame === 'typing') {
+  if (selectedGame === 'matchHebrew') {
     return (
       <div>
         <BackButton onClick={() => setSelectedGame(null)} />
-        <VocabGameTyping />
-      </div>
-    );
-  }
-
-  if (selectedGame === 'pastTense') {
-    return (
-      <div>
-        <BackButton onClick={() => setSelectedGame(null)} />
-        <PastTenseGame />
-      </div>
-    );
-  }
-
-  if (selectedGame === 'wordScramble') {
-    return (
-      <div>
-        <BackButton onClick={() => setSelectedGame(null)} />
-        <WordScrambleGame />
+        <MatchHebrewGame />
       </div>
     );
   }
@@ -54,36 +34,20 @@ function App() {
 
         <div className="grid gap-4 sm:gap-6">
           <GameCard
-            icon={<BookOpen className="w-10 h-10 sm:w-12 sm:h-12" />}
-            title="Vocabulary Quiz"
-            description="Multiple choice - English/Hebrew"
-            color="from-purple-500 to-pink-500"
-            onClick={() => setSelectedGame('vocab')}
-          />
-
-          <GameCard
-            icon={<Keyboard className="w-10 h-10 sm:w-12 sm:h-12" />}
-            title="Vocabulary Typing"
-            description="Type the English translation"
-            color="from-blue-500 to-cyan-500"
-            onClick={() => setSelectedGame('typing')}
-          />
-
-          <GameCard
-            icon={<Clock className="w-10 h-10 sm:w-12 sm:h-12" />}
-            title="Past Tense Challenge"
-            description="Learn irregular verbs - Present to Past"
-            color="from-indigo-500 to-purple-500"
-            onClick={() => setSelectedGame('pastTense')}
+            icon={<PenSquare className="w-10 h-10 sm:w-12 sm:h-12" />}
+            title="Spelling Focus"
+            description="Spell only the required 15 words"
+            color="from-blue-500 to-teal-500"
+            onClick={() => setSelectedGame('spellingFocus')}
             isNew={true}
           />
 
           <GameCard
-            icon={<Shuffle className="w-10 h-10 sm:w-12 sm:h-12" />}
-            title="Word Scramble"
-            description="Unscramble words from Parts 1-5"
-            color="from-emerald-500 to-cyan-500"
-            onClick={() => setSelectedGame('wordScramble')}
+            icon={<Languages className="w-10 h-10 sm:w-12 sm:h-12" />}
+            title="Find & Match Hebrew"
+            description="Match English words to Hebrew translation"
+            color="from-orange-500 to-rose-500"
+            onClick={() => setSelectedGame('matchHebrew')}
             isNew={true}
           />
         </div>
