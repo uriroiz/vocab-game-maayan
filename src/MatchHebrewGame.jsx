@@ -34,6 +34,7 @@ const shuffle = (arr) => [...arr].sort(() => Math.random() - 0.5);
 export default function MatchHebrewGame() {
   const [pairs, setPairs] = useState([]);
   const [started, setStarted] = useState(false);
+  const [roundNumber, setRoundNumber] = useState(0);
   const [leftPick, setLeftPick] = useState(null);
   const [rightPick, setRightPick] = useState(null);
   const [matchedIds, setMatchedIds] = useState(new Set());
@@ -47,12 +48,23 @@ export default function MatchHebrewGame() {
     setPairs(selected);
   }, []);
 
-  const roundPairs = useMemo(() => shuffle(pairs).slice(0, 8).map((p, i) => ({ ...p, id: i + 1 })), [pairs, started]);
+  const roundPairs = useMemo(() => {
+    if (pairs.length === 0) return [];
+    const shuffledAll = shuffle(pairs);
+    const batchSize = 8;
+    const startIndex = (roundNumber * batchSize) % shuffledAll.length;
+    const selected = [];
+    for (let i = 0; i < Math.min(batchSize, shuffledAll.length); i++) {
+      selected.push(shuffledAll[(startIndex + i) % shuffledAll.length]);
+    }
+    return selected.map((p, i) => ({ ...p, id: i + 1 }));
+  }, [pairs, roundNumber]);
   const left = useMemo(() => shuffle(roundPairs), [roundPairs]);
   const right = useMemo(() => shuffle(roundPairs), [roundPairs]);
 
   const start = () => {
     setStarted(true);
+    setRoundNumber((n) => n + 1);
     setLeftPick(null);
     setRightPick(null);
     setMatchedIds(new Set());
