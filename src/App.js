@@ -2,12 +2,12 @@ import React, { useState } from 'react';
 import VocabGame from './VocabGame.jsx';
 import VocabGameTyping from './VocabGameTyping.jsx';
 import PastTenseGame from './PastTenseGame.jsx';
-import { BookOpen, Keyboard, Clock, ArrowLeft } from 'lucide-react';
+import WordScrambleGame from './WordScrambleGame.jsx';
+import { BookOpen, Keyboard, Clock, ArrowLeft, Shuffle } from 'lucide-react';
 
 function App() {
   const [selectedGame, setSelectedGame] = useState(null);
 
-  // If a game is selected, show it
   if (selectedGame === 'vocab') {
     return (
       <div>
@@ -35,28 +35,32 @@ function App() {
     );
   }
 
-  // Main menu
+  if (selectedGame === 'wordScramble') {
+    return (
+      <div>
+        <BackButton onClick={() => setSelectedGame(null)} />
+        <WordScrambleGame />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-400 via-pink-400 to-blue-400 flex items-center justify-center p-4">
       <div className="bg-white rounded-3xl shadow-2xl p-6 sm:p-8 md:p-10 max-w-3xl w-full text-center">
         <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-800 mb-3">
-          🎮 Maayan's Learning Games
+          Maayan's Learning Games
         </h1>
-        <p className="text-lg sm:text-xl text-gray-600 mb-8 sm:mb-10">
-          Choose a game to play!
-        </p>
+        <p className="text-lg sm:text-xl text-gray-600 mb-8 sm:mb-10">Choose a game to play!</p>
 
         <div className="grid gap-4 sm:gap-6">
-          {/* Vocabulary Multiple Choice */}
           <GameCard
             icon={<BookOpen className="w-10 h-10 sm:w-12 sm:h-12" />}
             title="Vocabulary Quiz"
-            description="Multiple choice - English ↔ Hebrew"
+            description="Multiple choice - English/Hebrew"
             color="from-purple-500 to-pink-500"
             onClick={() => setSelectedGame('vocab')}
           />
 
-          {/* Vocabulary Typing */}
           <GameCard
             icon={<Keyboard className="w-10 h-10 sm:w-12 sm:h-12" />}
             title="Vocabulary Typing"
@@ -65,13 +69,21 @@ function App() {
             onClick={() => setSelectedGame('typing')}
           />
 
-          {/* Past Tense - NEW! */}
           <GameCard
             icon={<Clock className="w-10 h-10 sm:w-12 sm:h-12" />}
             title="Past Tense Challenge"
-            description="Learn irregular verbs - Present → Past"
+            description="Learn irregular verbs - Present to Past"
             color="from-indigo-500 to-purple-500"
             onClick={() => setSelectedGame('pastTense')}
+            isNew={true}
+          />
+
+          <GameCard
+            icon={<Shuffle className="w-10 h-10 sm:w-12 sm:h-12" />}
+            title="Word Scramble"
+            description="Unscramble words from Parts 1-5"
+            color="from-emerald-500 to-cyan-500"
+            onClick={() => setSelectedGame('wordScramble')}
             isNew={true}
           />
         </div>
@@ -80,7 +92,6 @@ function App() {
   );
 }
 
-// Game card component
 function GameCard({ icon, title, description, color, onClick, isNew }) {
   return (
     <button
@@ -92,9 +103,7 @@ function GameCard({ icon, title, description, color, onClick, isNew }) {
           NEW!
         </div>
       )}
-      <div className="bg-white/20 p-3 sm:p-4 rounded-xl">
-        {icon}
-      </div>
+      <div className="bg-white/20 p-3 sm:p-4 rounded-xl">{icon}</div>
       <div className="text-left">
         <h2 className="text-xl sm:text-2xl font-bold">{title}</h2>
         <p className="text-sm sm:text-base opacity-90">{description}</p>
@@ -103,7 +112,6 @@ function GameCard({ icon, title, description, color, onClick, isNew }) {
   );
 }
 
-// Back button component
 function BackButton({ onClick }) {
   return (
     <button
